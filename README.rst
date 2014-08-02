@@ -113,7 +113,7 @@ Add dbparti to PYTHONPATH and installed applications:
 
     INSTALLED_APPS = (
         ...
-        'dbparti'
+        'dbparti',
     )
 
 Create the model as usual which will represent the partitioned table and run syncdb to create a table for the

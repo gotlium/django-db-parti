@@ -1,10 +1,11 @@
-from dbparti import connection, transaction
+from django.db import connections
+from dbparti import transaction
 
 
 class BasePartition(object):
     """Base partition class for all backends. All backends should inherit from it."""
-    def __init__(self, column_value, column_type, **kwargs):
-        self.cursor = connection.cursor()
+    def __init__(self, column_value, column_type, using, **kwargs):
+        self.cursor = connections[using].cursor()
         self.model = kwargs['object_name']
         self.table = kwargs['db_table']
         self.partition_pk = kwargs['pk']

@@ -13,6 +13,10 @@ models.options.DEFAULT_NAMES += (
 
 
 class Partitionable(models.Model):
+    def __init__(self, *args, **kwargs):
+        self.__using_alias = None
+        super(Partitionable, self).__init__(*args, **kwargs)
+
     def get_partition(self):
         try:
             field = self._meta.get_field(self._meta.partition_column)
@@ -27,7 +31,9 @@ class Partitionable(models.Model):
 
         try:
             return getattr(backend.partition, '{0}Partition'.format(
-                self._meta.partition_type.capitalize()))(column_value, column_type, **self._meta.__dict__)
+                self._meta.partition_type.capitalize()))(
+                column_value, column_type, self.__using_alias or 'default',
+                **self._meta.__dict__)
         except AttributeError:
             import re
             raise PartitionTypeError(
@@ -37,7 +43,12 @@ class Partitionable(models.Model):
                     backend.partition) if re.match('\w+Partition', c) is not None and 'Base' not in c]
             )
 
+    def using(self, alias):
+        self.__using_alias = alias
+        super(Partitionable, self).using(alias)
+
     def save(self, *args, **kwargs):
+        self.__using_alias = kwargs.get('using')
         partition = self.get_partition()
 
         if not partition.exists():
